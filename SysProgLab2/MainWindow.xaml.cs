@@ -32,25 +32,31 @@ namespace SysProgLab2
                 List<double> dataX2_Plot2 = new();
                 List<double> dataY2_Plot2 = new();
 
-                for (int i = 0; i < 10; i++)
+                (double[], long) result1 = func.count();
+
+                dataX1_Plot1.Add(_N_threads);
+                dataY1_Plot1.Add(result1.Item2);
+                dataX1_Plot2.Add(_N_threads);
+                dataY1_Plot2.Add(_K);
+
+                for (int i = 0; i < 20; i++)
                 {
                     func = new Func(_N_a, _K, _N_threads);
-                    dataX1_Plot1.Add(_N_threads);
                     dataX2_Plot1.Add(_N_threads);
-                    dataX1_Plot2.Add(_K);
-                    dataX2_Plot2.Add(_K);
-                    (double[], long) result1 = func.count();
+                    dataX2_Plot2.Add(_N_threads);
                     (double[], long) result2 = func.countParallelTasks();
-                    dataY1_Plot1.Add(result1.Item2);
                     dataY2_Plot1.Add(result2.Item2);
-                    dataY1_Plot2.Add(result1.Item2);
-                    dataY2_Plot2.Add(result2.Item2);
+                    dataY2_Plot2.Add(_K);
                     _N_threads += _Delta_threads;
-                    _K += _Delta_K;
+                    //_K += _Delta_K;
                 }
 
+                List<double> NormY2_Plot1 = Smooth(dataY2_Plot1, 3);
+                //List<double> NormX2_Plot2 = Normalize(dataX2_Plot2);
+                //List<double> NormY2_Plot2= Normalize(dataY2_Plot2);
+
                 WpfPlot1.Plot.Add.Scatter(dataX1_Plot1.ToArray(), dataY1_Plot1.ToArray());
-                WpfPlot1.Plot.Add.Scatter(dataX2_Plot1.ToArray(), dataY2_Plot1.ToArray());
+                WpfPlot1.Plot.Add.Scatter(dataX2_Plot1.ToArray(), NormY2_Plot1.ToArray());
                 WpfPlot2.Plot.Add.Scatter(dataX1_Plot2.ToArray(), dataY1_Plot2.ToArray());
                 WpfPlot2.Plot.Add.Scatter(dataX2_Plot2.ToArray(), dataY2_Plot2.ToArray());
 
@@ -63,5 +69,25 @@ namespace SysProgLab2
                 MessageBox.Show("Все значения должны быть положительными и больше нуля.");
             }
         }
+        public static List<double> Smooth(List<double> data, int windowSize)
+        {
+            List<double> smoothedData = new List<double>();
+            for (int i = 0; i < data.Count; i++)
+            {
+                double sum = 0;
+                int count = 0;
+                for (int j = i - windowSize; j <= i + windowSize; j++)
+                {
+                    if (j >= 0 && j < data.Count)
+                    {
+                        sum += data[j];
+                        count++;
+                    }
+                }
+                smoothedData.Add(sum / count);
+            }
+            return smoothedData;
+        }
+
     }
 }

@@ -15,7 +15,6 @@ internal sealed class Func
             a[i] = rand.NextDouble();
         }
     }
-
     public (double[], long) count()
     {
         double[] b = new double[a.Length];
@@ -31,36 +30,10 @@ internal sealed class Func
         stopwatch.Stop();
         return (b, stopwatch.ElapsedTicks);
     }
-    public (double[], long) countParallel()
-    {
-        double[] b = new double[a.Length];
-        SemaphoreSlim semaphore = new SemaphoreSlim(N_threads);
-        Stopwatch stopwatch = Stopwatch.StartNew();
-
-        Parallel.For(0, a.Length, i =>
-        {
-            semaphore.Wait();
-            try
-            {
-                for (int j = 0; j < K; j++)
-                {
-                    b[i] += Math.Pow(a[i], 1.789);
-                }
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        });
-
-        stopwatch.Stop();
-        return (b, stopwatch.ElapsedTicks);
-    }
-
     public (double[], long) countParallelTasks()
     {
         double[] b = new double[a.Length];
-        Task[] tasks = new Task[N_threads];
+        Thread[] threads = new Thread[N_threads];
         int chunkSize = a.Length / N_threads;
         Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -68,7 +41,7 @@ internal sealed class Func
         {
             int start = t * chunkSize;
             int end = (t == N_threads - 1) ? a.Length : start + chunkSize;
-            tasks[t] = Task.Run(() =>
+            threads[t] = new Thread(() =>
             {
                 for (int i = start; i < end; i++)
                 {
@@ -78,9 +51,13 @@ internal sealed class Func
                     }
                 }
             });
+            threads[t].Start();
         }
 
-        Task.WhenAll(tasks).Wait();
+        foreach (Thread thread in threads)
+        {
+            thread.Join();
+        }
         stopwatch.Stop();
         return (b, stopwatch.ElapsedTicks);
     }
