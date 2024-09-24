@@ -22,42 +22,31 @@ namespace SysProgLab2
                 int.TryParse(Delta_K.Text, out int _Delta_K) && _Delta_K > 0)
             {
                 Func func = new(_N_a, _K, _N_threads);
-                List<double> dataX1_Plot1 = new();
-                List<double> dataY1_Plot1 = new();
                 List<double> dataX2_Plot1 = new();
                 List<double> dataY2_Plot1 = new();
 
-                List<double> dataX1_Plot2 = new();
-                List<double> dataY1_Plot2 = new();
                 List<double> dataX2_Plot2 = new();
                 List<double> dataY2_Plot2 = new();
 
                 (double[], long) result1 = func.count();
 
-                dataX1_Plot1.Add(_N_threads);
-                dataY1_Plot1.Add(result1.Item2);
-                dataX1_Plot2.Add(_N_threads);
-                dataY1_Plot2.Add(_K);
+                WpfPlot1.Plot.Add.Line(_N_threads, result1.Item2, _N_threads + 38, result1.Item2);
+                WpfPlot2.Plot.Add.Line(_N_threads, _K, _N_threads + 38, _K);
 
                 for (int i = 0; i < 20; i++)
                 {
-                    func = new Func(_N_a, _K, _N_threads);
-                    dataX2_Plot1.Add(_N_threads);
-                    dataX2_Plot2.Add(_N_threads);
-                    (double[], long) result2 = func.countParallelTasks();
+                    dataX2_Plot1.Add(func.N_threads);
+                    dataX2_Plot2.Add(func.K);
+                    (double[], long) result2 = func.countParallelThreads();
                     dataY2_Plot1.Add(result2.Item2);
                     dataY2_Plot2.Add(_K);
-                    _N_threads += _Delta_threads;
-                    //_K += _Delta_K;
+                    func.N_threads += _Delta_threads;
+                    func.K += _Delta_K;
                 }
 
-                List<double> NormY2_Plot1 = Smooth(dataY2_Plot1, 3);
-                //List<double> NormX2_Plot2 = Normalize(dataX2_Plot2);
-                //List<double> NormY2_Plot2= Normalize(dataY2_Plot2);
+                List<double> NormY2_Plot1 = Smooth(dataY2_Plot1, 2);
 
-                WpfPlot1.Plot.Add.Scatter(dataX1_Plot1.ToArray(), dataY1_Plot1.ToArray());
                 WpfPlot1.Plot.Add.Scatter(dataX2_Plot1.ToArray(), NormY2_Plot1.ToArray());
-                WpfPlot2.Plot.Add.Scatter(dataX1_Plot2.ToArray(), dataY1_Plot2.ToArray());
                 WpfPlot2.Plot.Add.Scatter(dataX2_Plot2.ToArray(), dataY2_Plot2.ToArray());
 
                 WpfPlot1.Refresh();
@@ -88,6 +77,5 @@ namespace SysProgLab2
             }
             return smoothedData;
         }
-
     }
 }
